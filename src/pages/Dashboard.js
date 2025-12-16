@@ -80,7 +80,8 @@ function ChatWindow({ partner, messages, sendMessage, currentUserId, isLoading }
             </div>
 
             {/* Corps du Chat (Messages) */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+           <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 bg-gray-50">
+
                 {/* Affiche le spinner seulement si c'est le tout premier chargement de la conversation */}
                 {isLoading && messages.length === 0 ? (
                     <LoadingSpinner />
@@ -114,7 +115,8 @@ function ChatWindow({ partner, messages, sendMessage, currentUserId, isLoading }
             </div>
 
             {/* Formulaire d'envoi */}
-            <form onSubmit={handleSend} className="p-4 border-t bg-white">
+            <form onSubmit={handleSend} className="p-3 sm:p-4 border-t bg-white sticky bottom-0">
+
                 <div className="flex items-center">
                     <input
                         type="text"
@@ -304,7 +306,8 @@ function ChatContainer({ user, getAuthHeaders, handleAuthError, setGlobalError, 
 
     return (
         // Utilise flex-col sur mobile et flex sur grand écran pour la disposition côte à côte
-        <div className="flex flex-col lg:flex-row h-[calc(100vh-14rem)] bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="flex flex-col lg:flex-row h-[calc(100dvh-10rem)] bg-white rounded-xl shadow-lg overflow-hidden">
+
              {/* Cache le sidebar sur mobile si un partenaire est sélectionné, sinon affiche tout */}
             <div className={`flex-shrink-0 w-full lg:w-80 ${activeChatPartner ? 'hidden lg:block' : 'block'}`}> 
                 <DiscussionSidebar 

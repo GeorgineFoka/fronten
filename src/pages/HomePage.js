@@ -23,6 +23,29 @@ const EyeIcon = ({ onClick, isVisible }) => (
         </svg>
     </button>
 );
+const Spinner = () => (
+    <svg
+        className="animate-spin h-5 w-5 text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+    >
+        <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+        />
+        <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+        />
+    </svg>
+);
+
 
 // Modal (Rendu responsive avec max-w-md et mx-4)
 const Modal = ({ isOpen, onClose, title, children }) => {
@@ -50,6 +73,8 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 // REGISTER FORM (Utilise w-full partout, déjà responsive)
 // ===============================================
 const RegisterForm = ({ onClose }) => { 
+    const [loading, setLoading] = useState(false);
+
     const [formData, setFormData] = useState({
         nom: '', prenom: '', statut: 'etudiant', email: '', password: '', confirmPassword: '', securityCode: ''
     });
@@ -60,39 +85,55 @@ const RegisterForm = ({ onClose }) => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setSuccess('');
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
 
-        if (formData.password !== formData.confirmPassword) return setError('Les mots de passe ne correspondent pas.');
-        if (formData.statut === 'chef_departement' && !formData.securityCode) return setError('Le code de sécurité est requis pour le statut Chef de Département.');
+    if (formData.password !== formData.confirmPassword) {
+        setLoading(false);
+        return setError('Les mots de passe ne correspondent pas.');
+    }
 
-        const dataToSend = {
-            nom: formData.nom,
-            prenom: formData.prenom,
-            email: formData.email,
-            statut: formData.statut,
-            password: formData.password,
-            ...(formData.statut === 'chef_departement' && { securityCode: formData.securityCode })
-        };
+    if (formData.statut === 'chef_departement' && !formData.securityCode) {
+        setLoading(false);
+        return setError('Le code de sécurité est requis pour le statut Chef de Département.');
+    }
 
-        try {
-            const response = await fetch(`${API_URL}/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dataToSend),
-            });
-
-            const result = await response.json();
-            if (!response.ok) return setError(result.error || 'Erreur lors de l\'inscription.');
-
-            setSuccess('Inscription réussie! Veuillez vous connecter.');
-            setTimeout(onClose, 1500);
-        } catch {
-            setError('Une erreur réseau est survenue.');
-        }
+    const dataToSend = {
+        nom: formData.nom,
+        prenom: formData.prenom,
+        email: formData.email,
+        statut: formData.statut,
+        password: formData.password,
+        ...(formData.statut === 'chef_departement' && {
+            securityCode: formData.securityCode
+        })
     };
+
+    try {
+        const response = await fetch(`${API_URL}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSend),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return setError(result.error || "Erreur lors de l'inscription.");
+        }
+
+        setSuccess('Inscription réussie ! Veuillez vous connecter.');
+        setTimeout(onClose, 1500);
+    } catch {
+        setError('Une erreur réseau est survenue.');
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -118,7 +159,21 @@ const RegisterForm = ({ onClose }) => {
                 <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirmer Mot de Passe" required className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 pr-10"/>
                 <EyeIcon onClick={() => setShowConfirmPassword(!showConfirmPassword)} isVisible={showConfirmPassword} />
             </div>
-            <button type="submit" disabled={!!success} className="w-full py-3 px-4 rounded-md text-white font-semibold bg-[#E74C3C] hover:bg-[#C0392B] shadow-md disabled:bg-gray-400">S'INSCRIRE</button>
+            <button
+    type="submit"
+    disabled={loading || !!success}
+    className="w-full py-3 px-4 rounded-md text-white font-semibold bg-[#E74C3C] hover:bg-[#C0392B] shadow-md disabled:bg-gray-400 flex justify-center items-center gap-2"
+>
+    {loading ? (
+        <>
+            <Spinner />
+            <span>Inscription...</span>
+        </>
+    ) : (
+        "S'INSCRIRE"
+    )}
+</button>
+
         </form>
     );
 };
@@ -131,33 +186,41 @@ const LoginForm = ({ onClose, onSuccess }) => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setSuccess('');
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
 
-        try {
-            const response = await fetch(`${API_URL}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
+    try {
+        const response = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
+        });
 
-            const result = await response.json();
-            if (!response.ok) return setError(result.error || 'Email ou mot de passe incorrect.');
-
-            setSuccess('Connexion réussie! Redirection...');
-            setTimeout(() => {
-                onClose();
-                if (onSuccess) onSuccess(result.token, result.user);
-            }, 1000);
-        } catch {
-            setError('Une erreur réseau est survenue.');
+        const result = await response.json();
+        if (!response.ok) {
+            setLoading(false);
+            return setError(result.error || 'Email ou mot de passe incorrect.');
         }
-    };
+
+        setSuccess('Connexion réussie! Redirection...');
+        setTimeout(() => {
+            onClose();
+            if (onSuccess) onSuccess(result.token, result.user);
+        }, 1000);
+    } catch {
+        setError('Une erreur réseau est survenue.');
+    } finally {
+        setLoading(false);
+    }
+};
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -169,7 +232,21 @@ const LoginForm = ({ onClose, onSuccess }) => {
                 <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} placeholder="Mot de Passe" required className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 pr-10"/>
                 <EyeIcon onClick={() => setShowPassword(!showPassword)} isVisible={showPassword} />
             </div>
-            <button type="submit" disabled={!!success} className="w-full py-3 px-4 rounded-md text-white font-semibold bg-[#2ECC71] hover:bg-[#27AE60] shadow-md disabled:bg-gray-400">SE CONNECTER</button>
+            <button
+    type="submit"
+    disabled={loading || !!success}
+    className="w-full py-3 px-4 rounded-md text-white font-semibold bg-[#2ECC71] hover:bg-[#27AE60] shadow-md disabled:bg-gray-400 flex justify-center items-center gap-2"
+>
+    {loading ? (
+        <>
+            <Spinner />
+            <span>Connexion...</span>
+        </>
+    ) : (
+        "SE CONNECTER"
+    )}
+</button>
+
         </form>
     );
 };
