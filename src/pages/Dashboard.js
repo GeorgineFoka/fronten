@@ -306,7 +306,8 @@ function ChatContainer({ user, getAuthHeaders, handleAuthError, setGlobalError, 
 
     return (
         // Utilise flex-col sur mobile et flex sur grand écran pour la disposition côte à côte
-        <div className="flex flex-col lg:flex-row h-[calc(100dvh-10rem)] bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="flex flex-col lg:flex-row h-[calc(100dvh-10rem)] bg-white rounded-xl shadow-lg overflow-y-auto lg:overflow-hidden">
+
 
              {/* Cache le sidebar sur mobile si un partenaire est sélectionné, sinon affiche tout */}
             <div className={`flex-shrink-0 w-full lg:w-80 ${activeChatPartner ? 'hidden lg:block' : 'block'}`}> 

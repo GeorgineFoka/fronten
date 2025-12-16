@@ -170,85 +170,232 @@ const Bureau = ({
   };
 
   // Fonction pour télécharger la liste des bureaux en PDF
-  const downloadBureauxPDF = () => {
-    const totalSalles = salles.filter(s => s.bureau_id).length;
-    
-    const content = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Liste des Bureaux</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { color: #2563eb; text-align: center; margin-bottom: 10px; }
-          .date { text-align: center; color: #666; margin-bottom: 30px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th { background-color: #2563eb; color: white; padding: 12px; text-align: left; }
-          td { padding: 10px; border-bottom: 1px solid #ddd; }
-          tr:hover { background-color: #f5f5f5; }
-          .stats { display: flex; justify-content: space-around; margin-bottom: 30px; }
-          .stat-box { text-align: center; padding: 15px; background: #f0f9ff; border-radius: 8px; }
-          .stat-value { font-size: 24px; font-weight: bold; color: #2563eb; }
-          .stat-label { color: #666; font-size: 14px; }
-        </style>
-      </head>
-      <body>
-        <h1>💼 Liste des Bureaux - SalleManager</h1>
-        <div class="date">Généré le ${new Date().toLocaleDateString('fr-FR', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        })}</div>
-        
-        <div class="stats">
-          <div class="stat-box">
-            <div class="stat-value">${bureaux.length}</div>
-            <div class="stat-label">Bureaux</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-value">${totalSalles}</div>
-            <div class="stat-label">Salles assignées</div>
-          </div>
+ const downloadBureauxPDF = () => {
+  const totalSalles = salles.filter(s => s.bureau_id).length;
+  
+  const content = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Liste des Bureaux</title>
+      <style>
+        body { 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          padding: 20px; 
+          margin: 0;
+          background: white;
+          font-size: 14px;
+        }
+        h1 { 
+          color: #2563eb; 
+          text-align: center; 
+          margin-bottom: 10px;
+          font-size: 24px;
+        }
+        .date { 
+          text-align: center; 
+          color: #666; 
+          margin-bottom: 30px;
+          font-size: 14px;
+        }
+        .stats { 
+          display: flex; 
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 15px;
+          margin-bottom: 30px; 
+        }
+        .stat-box { 
+          text-align: center; 
+          padding: 15px; 
+          background: #f0f9ff; 
+          border-radius: 8px;
+          min-width: 120px;
+          flex: 1;
+        }
+        .stat-value { 
+          font-size: 24px; 
+          font-weight: bold; 
+          color: #2563eb; 
+        }
+        .stat-label { 
+          color: #666; 
+          font-size: 12px; 
+        }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin-top: 20px;
+          font-size: 12px;
+          word-break: break-word;
+        }
+        th { 
+          background-color: #2563eb; 
+          color: white; 
+          padding: 10px; 
+          text-align: left; 
+          font-size: 12px;
+          font-weight: bold;
+        }
+        td { 
+          padding: 8px; 
+          border-bottom: 1px solid #ddd; 
+          font-size: 11px;
+          vertical-align: top;
+        }
+        .mobile-info {
+          display: none;
+          background: #f8f9fa;
+          border-left: 4px solid #2563eb;
+          padding: 10px;
+          margin: 20px 0;
+          border-radius: 4px;
+          font-size: 12px;
+        }
+        @media screen and (max-width: 768px) {
+          body { padding: 10px; }
+          table { font-size: 11px; }
+          .mobile-info { display: block; }
+        }
+        @media print {
+          body { padding: 10px; }
+          .no-print { display: none !important; }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; page-break-after: auto; }
+        }
+      </style>
+    </head>
+    <body>
+      <h1>💼 Liste des Bureaux Administratifs</h1>
+      <div class="date">Généré le ${new Date().toLocaleDateString('fr-FR', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}</div>
+      
+      <div class="mobile-info">
+        <strong>📱 Pour mobile :</strong> Utilisez le menu "Partager" de votre navigateur et sélectionnez "Imprimer" pour générer un PDF.
+      </div>
+      
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-value">${bureaux.length}</div>
+          <div class="stat-label">Bureaux</div>
         </div>
-        
-        <table>
-          <thead>
-            <tr>
-              <th>Bureau</th>
-              <th>Nombre de Salles</th>
-              <th>Salles Assignées</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${filteredBureaux.map(bureau => {
-              const sallesBureau = salles.filter(s => s.bureau_id === bureau.id);
-              const nbSalles = sallesBureau.length;
-              const nomsSalles = sallesBureau.map(s => s.nom).join(', ') || 'Aucune';
-              return `
-                <tr>
-                  <td><strong>${bureau.nom}</strong></td>
-                  <td>${nbSalles} salle${nbSalles > 1 ? 's' : ''}</td>
-                  <td>${nomsSalles}</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </body>
-      </html>
-    `;
+        <div class="stat-box">
+          <div class="stat-value">${totalSalles}</div>
+          <div class="stat-label">Salles assignées</div>
+        </div>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 30%;">Bureau</th>
+            <th style="width: 20%;">Nombre de Salles</th>
+            <th style="width: 50%;">Salles Assignées</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filteredBureaux.map(bureau => {
+            const sallesBureau = salles.filter(s => s.bureau_id === bureau.id);
+            const nbSalles = sallesBureau.length;
+            const nomsSalles = sallesBureau.map(s => s.nom).join(', ') || 'Aucune salle assignée';
+            return `
+              <tr>
+                <td><strong>${bureau.nom}</strong></td>
+                <td>${nbSalles} salle${nbSalles > 1 ? 's' : ''}</td>
+                <td>${nomsSalles}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+      
+      <div class="no-print" style="margin-top: 40px; padding: 20px; text-align: center; color: #666; font-size: 12px; border-top: 1px solid #eee;">
+        <p><strong>Instructions :</strong></p>
+        <p style="margin: 10px 0;">Pour sauvegarder en PDF, utilisez le menu d'impression de votre navigateur</p>
+        <p style="margin: 20px 0;">
+          <button onclick="window.print()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px; font-size: 14px;">
+            📄 Ouvrir l'impression
+          </button>
+          <button onclick="window.close()" style="padding: 10px 20px; background: #666; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+            ✕ Fermer
+          </button>
+        </p>
+        <p style="font-size: 11px; color: #888; margin-top: 15px;">
+          Sur mobile : Partage → Imprimer → Enregistrer en PDF<br>
+          Sur ordinateur : Fichier → Imprimer → Choisir "Enregistrer au format PDF"
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  // Détection du type d'appareil
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    // Solution mobile : télécharger un fichier HTML
+    try {
+      const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      link.href = url;
+      link.download = `bureaux_${new Date().toISOString().split('T')[0]}.html`;
+      
+      // Ajouter temporairement au DOM
+      document.body.appendChild(link);
+      
+      // Télécharger le fichier
+      link.click();
+      
+      // Nettoyer
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      // Message d'information pour l'utilisateur mobile
+      setSuccess('Fichier téléchargé. Ouvrez-le et utilisez "Partager → Imprimer" pour générer un PDF.');
+      
+    } catch (error) {
+      console.error('Erreur lors du téléchargement mobile:', error);
+      // Fallback : ouvrir dans une nouvelle fenêtre
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(content);
+      printWindow.document.close();
+      setSuccess('Ouvrez le menu "Partager" pour imprimer ou sauvegarder en PDF.');
+    }
+  } else {
+    // Solution desktop : ouvrir dans une nouvelle fenêtre
+    const printWindow = window.open('', '_blank');
     
-    const printWindow = window.open('', '', 'height=600,width=800');
+    if (!printWindow) {
+      setError('Veuillez autoriser les pop-ups pour ce site');
+      return;
+    }
+    
     printWindow.document.write(content);
     printWindow.document.close();
+    
+    // Focus sur la fenêtre
     printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
-  };
-
+    
+    // Laisser l'utilisateur choisir quand imprimer
+    // Pour auto-imprimer, décommentez les lignes suivantes :
+    // setTimeout(() => {
+    //   printWindow.print();
+    // }, 1000);
+  }
+  
+  setOpenMenuId(null);
+};
   return (
     <>
       {/* En-tête et Actions */}

@@ -324,87 +324,183 @@ export default function Salle({
     document.body.removeChild(link);
   };
 
-  const downloadSallesPDF = () => {
-    const content = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Liste des Salles</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { color: #2563eb; text-align: center; margin-bottom: 10px; }
-          .date { text-align: center; color: #666; margin-bottom: 30px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th { background-color: #2563eb; color: white; padding: 12px; text-align: left; }
-          td { padding: 10px; border-bottom: 1px solid #ddd; }
-          tr:hover { background-color: #f5f5f5; }
-          .stats { display: flex; justify-content: space-around; margin-bottom: 30px; }
-          .stat-box { text-align: center; padding: 15px; background: #f0f9ff; border-radius: 8px; }
-          .stat-value { font-size: 24px; font-weight: bold; color: #2563eb; }
-          .stat-label { color: #666; font-size: 14px; }
-        </style>
-      </head>
-      <body>
-        <h1>📚 Liste des Salles - SalleManager</h1>
-        <div class="date">Généré le ${new Date().toLocaleDateString('fr-FR', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        })}</div>
-        
-        <div class="stats">
-          <div class="stat-box">
-            <div class="stat-value">${salles.length}</div>
-            <div class="stat-label">Salles</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-value">${totalCapacity}</div>
-            <div class="stat-label">Capacité totale</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-value">${uniqueBuildings}</div>
-            <div class="stat-label">Bâtiments</div>
-          </div>
+  // Remplacer la fonction downloadSallesPDF par cette version améliorée
+const downloadSallesPDF = () => {
+  const content = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Liste des Salles</title>
+      <style>
+        body { 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          padding: 20px; 
+          margin: 0;
+          background: white;
+        }
+        h1 { 
+          color: #2563eb; 
+          text-align: center; 
+          margin-bottom: 10px;
+          font-size: 24px;
+        }
+        .date { 
+          text-align: center; 
+          color: #666; 
+          margin-bottom: 30px;
+          font-size: 14px;
+        }
+        .stats { 
+          display: flex; 
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 15px;
+          margin-bottom: 30px; 
+        }
+        .stat-box { 
+          text-align: center; 
+          padding: 15px; 
+          background: #f0f9ff; 
+          border-radius: 8px;
+          min-width: 120px;
+          flex: 1;
+        }
+        .stat-value { 
+          font-size: 24px; 
+          font-weight: bold; 
+          color: #2563eb; 
+        }
+        .stat-label { 
+          color: #666; 
+          font-size: 12px; 
+        }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin-top: 20px;
+          font-size: 12px;
+        }
+        th { 
+          background-color: #2563eb; 
+          color: white; 
+          padding: 10px; 
+          text-align: left; 
+          font-size: 12px;
+        }
+        td { 
+          padding: 8px; 
+          border-bottom: 1px solid #ddd; 
+          font-size: 11px;
+        }
+        @media print {
+          body { padding: 10px; }
+          .no-print { display: none !important; }
+        }
+      </style>
+    </head>
+    <body>
+      <h1>📚 Liste des Salles</h1>
+      <div class="date">Généré le ${new Date().toLocaleDateString('fr-FR', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}</div>
+      
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-value">${salles.length}</div>
+          <div class="stat-label">Salles</div>
         </div>
-        
-        <table>
-          <thead>
+        <div class="stat-box">
+          <div class="stat-value">${totalCapacity}</div>
+          <div class="stat-label">Capacité totale</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">${uniqueBuildings}</div>
+          <div class="stat-label">Bâtiments</div>
+        </div>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Salle</th>
+            <th>Capacité</th>
+            <th>Bâtiment</th>
+            <th>Assignation</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filteredSalles.map(salle => `
             <tr>
-              <th>Salle</th>
-              <th>Capacité</th>
-              <th>Bâtiment</th>
-              <th>Assignation</th>
-              <th>Description</th>
+              <td><strong>${salle.nom}</strong></td>
+              <td>${salle.capacite} places</td>
+              <td>${salle.batiment}</td>
+              <td>${salle.filiere_nom || salle.bureau_nom || 'Non assignée'}</td>
+              <td>${salle.filiere_nom ? 'Filière' : salle.bureau_nom ? 'Bureau' : '-'}</td>
             </tr>
-          </thead>
-          <tbody>
-            ${filteredSalles.map(salle => `
-              <tr>
-                <td><strong>${salle.nom}</strong></td>
-                <td>${salle.capacite} places</td>
-                <td>${salle.batiment}</td>
-                <td>${salle.filiere_nom ? '📚 ' + salle.filiere_nom : 
-                       salle.bureau_nom ? '💼 ' + salle.bureau_nom : 
-                       'Non assignée'}</td>
-                <td>${salle.description || 'N/A'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </body>
-      </html>
-    `;
+          `).join('')}
+        </tbody>
+      </table>
+      
+      <div class="no-print" style="margin-top: 40px; padding: 20px; text-align: center; color: #666; font-size: 12px; border-top: 1px solid #eee;">
+        <p>Pour imprimer, utilisez le menu d'impression de votre navigateur</p>
+        <p style="margin-top: 20px;">
+          <button onclick="window.print()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Imprimer / Sauvegarder en PDF
+          </button>
+          <button onclick="window.close()" style="padding: 10px 20px; background: #666; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+            Fermer
+          </button>
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  // Vérifier si c'est un mobile
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    // Pour mobile : créer un blob et télécharger directement
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `salles_${new Date().toISOString().split('T')[0]}.html`;
     
-    const printWindow = window.open('', '', 'height=600,width=800');
+    // Ajouter temporairement au DOM et cliquer
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Libérer l'URL après un délai
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    
+    // Afficher une instruction
+    setSuccess('Fichier téléchargé. Ouvrez-le et utilisez "Partager > Imprimer" pour créer un PDF.');
+  } else {
+    // Pour desktop : ouvrir dans une nouvelle fenêtre avec print
+    const printWindow = window.open('', '_blank');
     printWindow.document.write(content);
     printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
-  };
+    
+    // Attendre le chargement avant d'imprimer
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+        // Ne pas fermer automatiquement, laisser l'utilisateur choisir
+      }, 500);
+    };
+  }
+  
+  setOpenMenuId(null);
+};
   // --------------------------------------------------------------------------
 
   const filteredSalles = salles.filter(salle => 
