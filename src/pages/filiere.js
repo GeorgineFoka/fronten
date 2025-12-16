@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Save, X, Lock, Search, BookOpen, Download } from 'lucide-react';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL;
+
 
 const Filiere = ({ 
   filieres = [], 
@@ -32,6 +33,7 @@ const Filiere = ({
         headers: getAuthHeaders(),
         body: JSON.stringify({ nom })
       });
+      
       if (handleAuthError(response)) return false;
       
       if (response.ok) {
@@ -60,6 +62,7 @@ const Filiere = ({
         headers: getAuthHeaders(),
         body: JSON.stringify({ nom })
       });
+      
       if (handleAuthError(response)) return false;
       
       if (response.ok) {
@@ -81,10 +84,12 @@ const Filiere = ({
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette filière ?')) return;
     
     try {
+      // Correction : Assurer que getAuthHeaders() est appelé sans argument si non requis
       const response = await fetch(`${API_URL}/filieres/${id}`, { 
         method: 'DELETE',
-        headers: getAuthHeaders(''),
+        headers: getAuthHeaders(),
       });
+      
       if (handleAuthError(response)) return;
       
       if (response.ok) {
@@ -221,12 +226,10 @@ const Filiere = ({
           <tbody>
             ${filteredFilieres.map(filiere => {
               const sallesFiliere = salles.filter(s => s.filiere_id === filiere.id);
-              const nbSalles = sallesFiliere.length;
               const nomsSalles = sallesFiliere.map(s => s.nom).join(', ') || 'Aucune';
               return `
                 <tr>
                   <td><strong>${filiere.nom}</strong></td>
-                 
                   <td>${nomsSalles}</td>
                 </tr>
               `;
@@ -258,7 +261,8 @@ const Filiere = ({
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          <div className="relative flex-1 sm:max-w-xs">
+          {/* Champ de recherche */}
+          <div className="relative flex-1 sm:max-w-xs w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
@@ -269,11 +273,11 @@ const Filiere = ({
             />
           </div>
           
-          {/* Menu de téléchargement */}
-          <div className="relative">
+          {/* Menu de téléchargement (Utilise w-full sm:w-48 pour la responsivité) */}
+          <div className="relative w-full sm:w-auto">
             <button
               onClick={() => setOpenMenuId(openMenuId === 'download' ? null : 'download')}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 whitespace-nowrap"
+              className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Download size={20} />
               Télécharger
@@ -285,7 +289,7 @@ const Filiere = ({
                   className="fixed inset-0 z-10" 
                   onClick={() => setOpenMenuId(null)}
                 />
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                <div className="absolute right-0 mt-2 w-full sm:w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                   <button
                     onClick={() => {
                       downloadFilieresCSV();
@@ -311,6 +315,7 @@ const Filiere = ({
             )}
           </div>
           
+          {/* Bouton Nouvelle Filière / Lecture seule */}
           {isChefDepartement || isAdmin ? (
             <button
               onClick={() => {
@@ -318,13 +323,13 @@ const Filiere = ({
                 setEditMode(false);
                 resetForm();
               }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 whitespace-nowrap"
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Plus size={20} />
               Nouvelle Filière
             </button>
           ) : (
-            <div className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg flex items-center gap-2">
+            <div className="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-600 rounded-lg flex items-center justify-center gap-2">
               <Lock size={18} />
               <span className="text-sm">Lecture seule</span>
             </div>
@@ -335,7 +340,7 @@ const Filiere = ({
       {/* Modal Popup Formulaire Filière */}
       {showForm && (isChefDepartement || isAdmin) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full"> {/* max-w-md w-full pour la responsivité */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-t-2xl">
               <div className="flex justify-between items-center">
                 <div>
@@ -387,17 +392,18 @@ const Filiere = ({
 
       {/* Tableau des Filières */}
       <div className="overflow-hidden border border-gray-200 rounded-xl">
+        {/* Assurer le défilement horizontal pour les petits écrans */}
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                   Filière
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                   Salles Assignées
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                   Actions
                 </th>
               </tr>
@@ -408,7 +414,7 @@ const Filiere = ({
                 const nomsSalles = sallesFiliere.map(s => s.nom).join(', ');
                 return (
                   <tr key={filiere.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                           <BookOpen size={20} />
@@ -416,14 +422,14 @@ const Filiere = ({
                         <span className="font-medium text-gray-900">{filiere.nom}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-normal min-w-[200px] text-wrap">
                       {nomsSalles ? (
                         <span className="text-gray-700">{nomsSalles}</span>
                       ) : (
                         <span className="text-gray-400 text-sm italic">Aucune salle assignée</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {(isChefDepartement || isAdmin) ? (
                           <>
@@ -443,7 +449,7 @@ const Filiere = ({
                             </button>
                           </>
                         ) : (
-                          <span className="text-gray-400" title="Lecture seule">
+                          <span className="text-gray-400 p-2" title="Lecture seule">
                             <Lock size={18} />
                           </span>
                         )}

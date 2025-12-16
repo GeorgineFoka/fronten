@@ -14,7 +14,8 @@ import Alert from './Alert';
 import LoadingSpinner from './LoadingSpinner';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL;
+
 
 // --- Utilitaires ---
 const formatTime = (isoString) => {
@@ -23,7 +24,7 @@ const formatTime = (isoString) => {
     return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 };
 
-// --- Composant ChatWindow ---
+// --- Composant ChatWindow (Rendu responsive) ---
 function ChatWindow({ partner, messages, sendMessage, currentUserId, isLoading }) {
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef(null);
@@ -53,10 +54,10 @@ function ChatWindow({ partner, messages, sendMessage, currentUserId, isLoading }
 
     if (!partner) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 p-8">
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4 sm:p-8">
                 <MessageSquare size={48} className="mb-4 text-blue-400" />
-                <h3 className="text-lg font-semibold">Sélectionnez une conversation</h3>
-                <p className="text-sm text-center mt-1">
+                <h3 className="text-lg font-semibold text-center">Sélectionnez une conversation</h3>
+                <p className="text-sm text-center mt-1 max-w-sm">
                     Les utilisateurs peuvent écrire aux Chefs de Département. Les Chefs peuvent répondre aux utilisateurs.
                 </p>
             </div>
@@ -70,8 +71,8 @@ function ChatWindow({ partner, messages, sendMessage, currentUserId, isLoading }
                 <div className="p-2 bg-blue-100 rounded-full mr-3">
                     <User size={20} className="text-blue-600" />
                 </div>
-                <div>
-                    <h4 className="font-semibold text-gray-900">{partner.nom} {partner.prenom}</h4>
+                <div className="truncate"> {/* Ajout de truncate pour gérer les longs noms */}
+                    <h4 className="font-semibold text-gray-900 truncate">{partner.nom} {partner.prenom}</h4>
                     <p className="text-sm text-gray-500">
                         <StatusBadge status={partner.statut} />
                     </p>
@@ -95,14 +96,14 @@ function ChatWindow({ partner, messages, sendMessage, currentUserId, isLoading }
                             className={`flex ${msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'}`}
                         >
                             <div 
-                                className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-xl text-white shadow-md ${
+                                className={`max-w-[80%] sm:max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-xl text-white shadow-md ${
                                     msg.sender_id === currentUserId 
                                         ? 'bg-blue-600 rounded-br-none' 
                                         : 'bg-gray-700 rounded-tl-none text-gray-50'
                                 }`}
                             >
-                                <p className="text-sm">{msg.message}</p>
-                                <div className={`mt-1 text-xs ${msg.sender_id === currentUserId ? 'text-blue-200' : 'text-gray-300'} text-right`}>
+                                <p className="text-sm break-words">{msg.message}</p> {/* Ajout de break-words */}
+                                <div className={`mt-1 text-xs ${msg.sender_id === currentUserId ? 'text-blue-200' : 'text-gray-300'} text-right whitespace-nowrap`}>
                                     {formatTime(msg.sent_at)}
                                 </div>
                             </div>
@@ -116,31 +117,29 @@ function ChatWindow({ partner, messages, sendMessage, currentUserId, isLoading }
             <form onSubmit={handleSend} className="p-4 border-t bg-white">
                 <div className="flex items-center">
                     <input
-  type="text"
-  value={newMessage}
-  onChange={(e) => setNewMessage(e.target.value)}
-  placeholder="Écrire un message..."
-  className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 mr-3"
-  disabled={!partner}
-/>
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Écrire un message..."
+                        className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 mr-3 text-sm"
+                        disabled={!partner}
+                    />
 
-                  <button
-  type="submit"
-  disabled={!partner || !newMessage.trim()}
-  className="flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-full transition duration-150 disabled:opacity-50"
-  title="Envoyer"
->
-  <Send size={20} />
-</button>
-
-
+                    <button
+                        type="submit"
+                        disabled={!partner || !newMessage.trim()}
+                        className="flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full transition duration-150 disabled:opacity-50 flex-shrink-0"
+                        title="Envoyer"
+                    >
+                        <Send size={20} />
+                    </button>
                 </div>
             </form>
         </div>
     );
 }
 
-// --- Composant DiscussionSidebar ---
+// --- Composant DiscussionSidebar (Rendu responsive) ---
 function DiscussionSidebar({ conversations, setActiveChatPartner, activeChatPartnerId, currentUserId }) {
     
     // Trier par le message le plus récent
@@ -151,7 +150,8 @@ function DiscussionSidebar({ conversations, setActiveChatPartner, activeChatPart
     }, [conversations]);
 
     return (
-        <div className="w-full lg:w-80 border-r bg-white h-full overflow-y-auto">
+        // Utilise w-full sur mobile et lg:w-80 sur grand écran
+        <div className="w-full lg:w-80 border-r bg-white h-full overflow-y-auto flex-shrink-0"> 
             <h3 className="text-lg font-semibold p-4 border-b text-gray-800 flex items-center">
                 <MessageSquare size={20} className="mr-2 text-blue-600" /> 
                 Discussions
@@ -172,23 +172,23 @@ function DiscussionSidebar({ conversations, setActiveChatPartner, activeChatPart
                             conv.id === activeChatPartnerId ? 'bg-blue-50 border-l-4 border-blue-600' : ''
                         }`}
                     >
-                        <div className="flex items-center">
-                            <div className="p-2 bg-gray-100 rounded-full mr-3 relative">
+                        <div className="flex items-center min-w-0"> {/* Ajout de min-w-0 */}
+                            <div className="p-2 bg-gray-100 rounded-full mr-3 relative flex-shrink-0">
                                 <User size={16} className="text-gray-600" />
                                 {conv.unreadCount > 0 && (
                                      <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold">
-                                         {conv.unreadCount}
+                                         {/* Simplifié pour ne pas afficher le nombre s'il est > 9 */}
                                      </span>
                                 )}
                             </div>
-                            <div>
-                                <p className="font-medium text-sm text-gray-800">{conv.nom} {conv.prenom}</p>
-                                <p className="text-xs text-gray-500 truncate w-40">
+                            <div className="min-w-0">
+                                <p className="font-medium text-sm text-gray-800 truncate">{conv.nom} {conv.prenom}</p>
+                                <p className="text-xs text-gray-500 truncate max-w-[150px] sm:max-w-full"> {/* Limite la taille sur mobile */}
                                     {conv.lastMessage || 'Nouvelle conversation'}
                                 </p>
                             </div>
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-400 flex-shrink-0 ml-2">
                             {conv.lastMessageSentAt ? formatTime(conv.lastMessageSentAt) : ''}
                         </div>
                     </button>
@@ -198,7 +198,7 @@ function DiscussionSidebar({ conversations, setActiveChatPartner, activeChatPart
     );
 }
 
-// --- Composant ChatContainer (MODIFIÉ) ---
+// --- Composant ChatContainer (Rendu responsive) ---
 function ChatContainer({ user, getAuthHeaders, handleAuthError, setGlobalError, setGlobalSuccess, activeChatPartner, setActiveChatPartner }) {
     const [conversations, setConversations] = useState([]);
     const [messages, setMessages] = useState([]);
@@ -303,14 +303,29 @@ function ChatContainer({ user, getAuthHeaders, handleAuthError, setGlobalError, 
     }
 
     return (
-        <div className="flex h-[calc(100vh-14rem)] bg-white rounded-xl shadow-lg overflow-hidden">
-            <DiscussionSidebar 
-                conversations={conversations} 
-                setActiveChatPartner={setActiveChatPartner}
-                activeChatPartnerId={activeChatPartner?.id}
-                currentUserId={user}
-            />
-            <div className="flex-1">
+        // Utilise flex-col sur mobile et flex sur grand écran pour la disposition côte à côte
+        <div className="flex flex-col lg:flex-row h-[calc(100vh-14rem)] bg-white rounded-xl shadow-lg overflow-hidden">
+             {/* Cache le sidebar sur mobile si un partenaire est sélectionné, sinon affiche tout */}
+            <div className={`flex-shrink-0 w-full lg:w-80 ${activeChatPartner ? 'hidden lg:block' : 'block'}`}> 
+                <DiscussionSidebar 
+                    conversations={conversations} 
+                    setActiveChatPartner={setActiveChatPartner}
+                    activeChatPartnerId={activeChatPartner?.id}
+                    currentUserId={user}
+                />
+            </div>
+             {/* Affiche le chat window sur mobile si un partenaire est sélectionné, sinon occupe tout l'espace sur desktop */}
+            <div className={`flex-1 ${activeChatPartner ? 'block' : 'hidden lg:block'}`}>
+                {/* Bouton de retour uniquement sur mobile */}
+                {activeChatPartner && (
+                    <button 
+                        onClick={() => setActiveChatPartner(null)} 
+                        className="lg:hidden p-2 text-blue-600 hover:text-blue-800 bg-gray-100 w-full flex items-center border-b"
+                    >
+                        <ChevronLeft size={20} />
+                        Retour aux discussions
+                    </button>
+                )}
                 <ChatWindow 
                     partner={activeChatPartner}
                     messages={messages}
@@ -323,7 +338,7 @@ function ChatContainer({ user, getAuthHeaders, handleAuthError, setGlobalError, 
     );
 }
 
-// Composant pour afficher la liste des Chefs de Département (pour l'onglet 'chefs')
+// Composant pour afficher la liste des Chefs de Département (Rendu responsive)
 function ChefsDepartementList({ chefs, setActiveTab, setActiveChatPartner }) {
     
     const handleStartChat = (chef) => {
@@ -334,7 +349,7 @@ function ChefsDepartementList({ chefs, setActiveTab, setActiveChatPartner }) {
     };
     
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 p-4 sm:p-6 bg-white rounded-xl shadow-lg">
             <h3 className="text-xl font-semibold text-gray-800 border-b pb-2">Liste des Chefs de Département</h3>
             <p className="text-sm text-gray-600">
                 Cliquez sur un chef pour initier une discussion.
@@ -342,16 +357,17 @@ function ChefsDepartementList({ chefs, setActiveTab, setActiveChatPartner }) {
             {chefs.length === 0 ? (
                 <p className="text-gray-500">Aucun Chef de Département trouvé.</p>
             ) : (
+                // Utilise une grille responsive: 1 col sur mobile, 2 sur md, 3 sur lg
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {chefs.map(chef => (
                         <div key={chef.id} className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-                            <div className="flex items-center gap-4 mb-3">
-                                <div className="p-3 bg-blue-100 rounded-full">
+                            <div className="flex items-start gap-4 mb-3">
+                                <div className="p-3 bg-blue-100 rounded-full flex-shrink-0">
                                     <User size={20} className="text-blue-600" />
                                 </div>
-                                <div>
-                                    <p className="text-base font-semibold text-gray-900">{chef.nom} {chef.prenom}</p>
-                                    <p className="text-sm text-gray-600">{chef.email}</p>
+                                <div className='truncate'>
+                                    <p className="text-base font-semibold text-gray-900 truncate">{chef.nom} {chef.prenom}</p>
+                                    <p className="text-sm text-gray-600 truncate">{chef.email}</p>
                                 </div>
                             </div>
                             <button
@@ -528,7 +544,9 @@ const chartData = useMemo(() => [
     </div>;
   }
 
-  const sidebarItems = [
+
+
+const sidebarItems = [
     { id: 'dashboard', label: 'Tableau de bord', icon: Home },
     { id: 'salles', label: 'Gestion des Salles', icon: Building },
     { id: 'filieres', label: 'Gestion des Filières', icon: Users },
@@ -564,59 +582,59 @@ const chartData = useMemo(() => [
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header/Navbar */}
+      {/* Header/Navbar (Rendu responsive) */}
       <header className="bg-gray-800 shadow-lg border-b border-gray-700 sticky top-0 z-50">
-        <div className="px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8"> {/* Padding ajusté */}
           <div className="flex justify-between items-center h-16">
             {/* Left side: Logo and menu button */}
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition lg:hidden"
+                className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition lg:hidden" // Affiche uniquement sur mobile/tablet
               >
                 {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
               
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-600 rounded-xl">
+                <div className="p-2 bg-blue-600 rounded-xl flex-shrink-0">
                   <Building className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-white">SalleManager</h1>
-                  <p className="text-xs text-gray-400 font-medium">Polytechnique de Douala</p>
+                  <h1 className="text-lg sm:text-xl font-bold text-white">LOCALIS</h1>
+                  <p className="text-xs text-gray-400 font-medium hidden sm:block">Polytechnique de Douala</p> {/* Cache le sous-titre sur petit mobile */}
                 </div>
               </div>
             </div>
 
             {/* Right side: User info and actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3"> {/* Espacement ajusté sur mobile */}
               {/* Notifications */}
-              <button className="p-2.5 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition relative">
-                <Bell size={22} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+              <button className="p-2 sm:p-2.5 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition relative">
+                <Bell size={20} className='sm:h-6 sm:w-6'/>
+                <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
               
               {/* Settings */}
-              <button className="p-2.5 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition">
-                <Settings size={22} />
+              <button className="p-2 sm:p-2.5 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition hidden sm:block"> {/* Cache sur très petit écran */}
+                <Settings size={20} className='sm:h-6 sm:w-6'/>
               </button>
               
               {/* User dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="p-2.5 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition"
+                  className="p-2 sm:p-2.5 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition"
                 >
-                  <User size={22} />
+                  <User size={20} className='sm:h-6 sm:w-6'/>
                 </button>
                 
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50"> {/* Largeur ajustée */}
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
                         {user.nom} {user.prenom}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{user.email}</p>
                       <div className="mt-2">
                         <StatusBadge status={user.statut} />
                       </div>
@@ -646,8 +664,8 @@ const chartData = useMemo(() => [
 
       {/* Main content with sidebar */}
       <div className="flex">
-        {/* Sidebar - Desktop */}
-        <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} hidden lg:block bg-gray-800 border-r border-gray-700 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto transition-all duration-300`}>
+        {/* Sidebar - Desktop (Rendu responsive) */}
+        <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} hidden lg:block bg-gray-800 border-r border-gray-700 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto transition-all duration-300 flex-shrink-0`}>
           <div className="p-4">
             {/* Navigation header with toggle button */}
             <div className="mb-6">
@@ -686,7 +704,7 @@ const chartData = useMemo(() => [
                       <item.icon size={18} className={sidebarOpen ? "mr-3" : "mx-auto"} />
                       {sidebarOpen && (
                         <>
-                          <span className="flex-1 text-left">{item.label}</span>
+                          <span className="flex-1 text-left truncate">{item.label}</span>
                           {activeTab === item.id && (
                             <ChevronRight size={16} className="ml-auto" />
                           )}
@@ -748,7 +766,7 @@ const chartData = useMemo(() => [
           </div>
         </aside>
 
-        {/* Sidebar - Mobile */}
+        {/* Sidebar - Mobile (Rendu responsive) */}
         {sidebarOpen && (
           <div className="lg:hidden fixed inset-0 z-40">
             <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)}></div>
@@ -780,27 +798,45 @@ const chartData = useMemo(() => [
                     </li>
                   ))}
                 </ul>
+                {/* Stats et Aide Mobile (Dupliqué de la version Desktop pour l'affichage mobile) */}
+                <div className="mt-8 border-t border-gray-700 pt-6">
+                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Statistiques</h3>
+                   <div className="space-y-3">
+                      <div className="bg-gray-700 p-3 rounded-lg border border-gray-600 flex justify-between items-center">
+                        <span className="text-sm text-gray-300">Salles</span>
+                        <span className="text-lg font-bold text-blue-400">{salles.length}</span>
+                      </div>
+                      <div className="bg-gray-700 p-3 rounded-lg border border-gray-600 flex justify-between items-center">
+                        <span className="text-sm text-gray-300">Filières</span>
+                        <span className="text-lg font-bold text-green-400">{filieres.length}</span>
+                      </div>
+                      <div className="bg-gray-700 p-3 rounded-lg border border-gray-600 flex justify-between items-center">
+                        <span className="text-sm text-gray-300">Bureaux</span>
+                        <span className="text-lg font-bold text-purple-400">{bureaux.length}</span>
+                      </div>
+                   </div>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Main content area */}
-        <main className={`flex-1 p-4 md:p-6 lg:p-8 transition-all duration-300`}>
+        {/* Main content area (Rendu responsive) */}
+        <main className={`flex-1 p-4 md:p-6 lg:p-8 transition-all duration-300 overflow-x-hidden`}>
           <div className="max-w-7xl mx-auto">
-            {/* Page header */}
+            {/* Page header (Rendu responsive) */}
             <div className="mb-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                <div className="min-w-0">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 truncate">
                     {getPageTitle()}
                   </h2>
-                  <p className="text-gray-600 mt-2">
+                  <p className="text-gray-600 mt-2 truncate">
                     {getPageDescription()}
                   </p>
                 </div>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-shrink-0">
                   {/* ... Vos boutons d'action ici ... */}
                 </div>
               </div>
@@ -811,8 +847,8 @@ const chartData = useMemo(() => [
             {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
 
             {/* Content */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-6">
+            <div className="bg-white rounded-xl shadow-sm overflow-x-auto lg:overflow-x-hidden"> {/* Ajout de overflow-x-auto pour gérer le contenu large */}
+              <div className="p-4 sm:p-6"> {/* Padding ajusté sur mobile */}
                 {loading && activeTab !== 'discussion' ? (
                   <LoadingSpinner />
                 ) : (
@@ -884,74 +920,70 @@ const chartData = useMemo(() => [
                       />
                     )}
                     
-                  
+                  {activeTab === 'dashboard' && (
+                    <div className="space-y-6">
+                      {/* Cartes (Rendu responsive) */}
+                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"> {/* 2 colonnes sur mobile, 4 sur desktop */}
+                        <div className="bg-white shadow rounded-lg p-3 sm:p-5 flex items-center gap-2 sm:gap-4 border border-gray-200">
+                          <div className="p-2 sm:p-3 bg-blue-100 rounded-full flex-shrink-0">
+                            <Building className="text-blue-600" size={20} />
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs sm:text-sm">Salles</p>
+                            <p className="text-xl sm:text-2xl font-bold text-gray-800">{salles.length}</p>
+                          </div>
+                        </div>
 
+                        <div className="bg-white shadow rounded-lg p-3 sm:p-5 flex items-center gap-2 sm:gap-4 border border-gray-200">
+                          <div className="p-2 sm:p-3 bg-green-100 rounded-full flex-shrink-0">
+                            <Users className="text-green-600" size={20} />
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs sm:text-sm">Filières</p>
+                            <p className="text-xl sm:text-2xl font-bold text-gray-800">{filieres.length}</p>
+                          </div>
+                        </div>
 
+                        <div className="bg-white shadow rounded-lg p-3 sm:p-5 flex items-center gap-2 sm:gap-4 border border-gray-200">
+                          <div className="p-2 sm:p-3 bg-purple-100 rounded-full flex-shrink-0">
+                            <Briefcase className="text-purple-600" size={20} />
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs sm:text-sm">Bureaux</p>
+                            <p className="text-xl sm:text-2xl font-bold text-gray-800">{bureaux.length}</p>
+                          </div>
+                        </div>
 
-{activeTab === 'dashboard' && (
-  <div className="space-y-6">
-    {/* Cartes */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white shadow rounded-lg p-5 flex items-center gap-4 border border-gray-200">
-        <div className="p-3 bg-blue-100 rounded-full">
-          <Building className="text-blue-600" size={24} />
-        </div>
-        <div>
-          <p className="text-gray-500 text-sm">Salles</p>
-          <p className="text-2xl font-bold text-gray-800">{salles.length}</p>
-        </div>
-      </div>
+                        <div className="bg-white shadow rounded-lg p-3 sm:p-5 flex items-center gap-2 sm:gap-4 border border-gray-200">
+                          <div className="p-2 sm:p-3 bg-yellow-100 rounded-full flex-shrink-0">
+                            <User className="text-yellow-600" size={20} />
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs sm:text-sm">Chefs Dept</p>
+                            <p className="text-xl sm:text-2xl font-bold text-gray-800">{chefsDepartement.length}</p>
+                          </div>
+                        </div>
+                      </div>
 
-      <div className="bg-white shadow rounded-lg p-5 flex items-center gap-4 border border-gray-200">
-        <div className="p-3 bg-green-100 rounded-full">
-          <Users className="text-green-600" size={24} />
-        </div>
-        <div>
-          <p className="text-gray-500 text-sm">Filières</p>
-          <p className="text-2xl font-bold text-gray-800">{filieres.length}</p>
-        </div>
-      </div>
-
-      <div className="bg-white shadow rounded-lg p-5 flex items-center gap-4 border border-gray-200">
-        <div className="p-3 bg-purple-100 rounded-full">
-          <Briefcase className="text-purple-600" size={24} />
-        </div>
-        <div>
-          <p className="text-gray-500 text-sm">Bureaux</p>
-          <p className="text-2xl font-bold text-gray-800">{bureaux.length}</p>
-        </div>
-      </div>
-
-      <div className="bg-white shadow rounded-lg p-5 flex items-center gap-4 border border-gray-200">
-        <div className="p-3 bg-yellow-100 rounded-full">
-          <User className="text-yellow-600" size={24} />
-        </div>
-        <div>
-          <p className="text-gray-500 text-sm">Chefs Dept</p>
-          <p className="text-2xl font-bold text-gray-800">{chefsDepartement.length}</p>
-        </div>
-      </div>
-    </div>
-
-    {/* Graphe en bas */}
-    <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-     
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="value">
-            <Cell fill="#1D4ED8" /> {/* Salles */}
-            <Cell fill="#10B981" /> {/* Filières */}
-            <Cell fill="#8B5CF6" /> {/* Bureaux */}
-            <Cell fill="#FBBF24" /> {/* Chefs */}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  </div>
-)}
+                      {/* Graphe en bas */}
+                      <div className="bg-white shadow rounded-lg p-4 sm:p-6 border border-gray-200">
+                      
+                        <ResponsiveContainer width="100%" height={300} minHeight={250}> {/* minHeight pour éviter les problèmes de rendu */}
+                          <BarChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 5 }}>
+                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                            <YAxis tick={{ fontSize: 12 }} />
+                            <Tooltip />
+                            <Bar dataKey="value" >
+                              <Cell fill="#1D4ED8" /> {/* Salles */}
+                              <Cell fill="#10B981" /> {/* Filières */}
+                              <Cell fill="#8B5CF6" /> {/* Bureaux */}
+                              <Cell fill="#FBBF24" /> {/* Chefs */}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  )}
 
 
                   </>

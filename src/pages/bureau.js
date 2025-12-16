@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Save, X, Lock, Search, Briefcase, Download } from 'lucide-react';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL;
+
 
 const Bureau = ({ 
   bureaux = [], 
@@ -250,6 +251,7 @@ const Bureau = ({
 
   return (
     <>
+      {/* En-tête et Actions */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Gestion des Bureaux</h2>
@@ -259,7 +261,8 @@ const Bureau = ({
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          <div className="relative flex-1 sm:max-w-xs">
+          {/* Champ de recherche */}
+          <div className="relative flex-1 sm:max-w-xs w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
@@ -270,11 +273,11 @@ const Bureau = ({
             />
           </div>
           
-          {/* Menu de téléchargement */}
-          <div className="relative">
+          {/* Menu de téléchargement (Utilise le positionnement absolu pour le menu) */}
+          <div className="relative w-full sm:w-auto">
             <button
               onClick={() => setOpenMenuId(openMenuId === 'download' ? null : 'download')}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 whitespace-nowrap"
+              className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Download size={20} />
               Télécharger
@@ -286,7 +289,7 @@ const Bureau = ({
                   className="fixed inset-0 z-10" 
                   onClick={() => setOpenMenuId(null)}
                 />
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                <div className="absolute right-0 mt-2 w-full sm:w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                   <button
                     onClick={() => {
                       downloadBureauxCSV();
@@ -312,6 +315,7 @@ const Bureau = ({
             )}
           </div>
           
+          {/* Bouton Nouveau Bureau / Lecture seule */}
           {isChefDepartement || isAdmin ? (
             <button
               onClick={() => {
@@ -319,13 +323,13 @@ const Bureau = ({
                 setEditMode(false);
                 resetForm();
               }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 whitespace-nowrap"
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Plus size={20} />
               Nouveau Bureau
             </button>
           ) : (
-            <div className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg flex items-center gap-2">
+            <div className="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-600 rounded-lg flex items-center justify-center gap-2">
               <Lock size={18} />
               <span className="text-sm">Lecture seule</span>
             </div>
@@ -336,7 +340,7 @@ const Bureau = ({
       {/* Modal Popup Formulaire Bureau */}
       {showForm && (isChefDepartement || isAdmin) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full"> {/* max-w-md w-full pour la responsivité */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-t-2xl">
               <div className="flex justify-between items-center">
                 <div>
@@ -388,17 +392,18 @@ const Bureau = ({
 
       {/* Tableau des Bureaux */}
       <div className="overflow-hidden border border-gray-200 rounded-xl">
+        {/* Assurer le défilement horizontal pour les petits écrans */}
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                   Bureau
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                   Salles Assignées
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                   Actions
                 </th>
               </tr>
@@ -409,7 +414,7 @@ const Bureau = ({
                 const nomsSalles = sallesBureau.map(s => s.nom).join(', ');
                 return (
                   <tr key={bureau.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
                           <Briefcase size={20} />
@@ -417,14 +422,14 @@ const Bureau = ({
                         <span className="font-medium text-gray-900">{bureau.nom}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-normal min-w-[200px] text-wrap">
                       {nomsSalles ? (
                         <span className="text-gray-700">{nomsSalles}</span>
                       ) : (
                         <span className="text-gray-400 text-sm italic">Aucune salle assignée</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {(isChefDepartement || isAdmin) ? (
                           <>
@@ -444,7 +449,7 @@ const Bureau = ({
                             </button>
                           </>
                         ) : (
-                          <span className="text-gray-400" title="Lecture seule">
+                          <span className="text-gray-400 p-2" title="Lecture seule">
                             <Lock size={18} />
                           </span>
                         )}
@@ -455,6 +460,7 @@ const Bureau = ({
               })}
               {filteredBureaux.length === 0 && (
                 <tr>
+                  {/* Utilisation de colSpan basé sur le nombre de colonnes */}
                   <td colSpan="3" className="px-6 py-12 text-center">
                     <div className="text-gray-500">
                       {searchTerm ? 'Aucun bureau ne correspond à votre recherche' : 'Aucun bureau disponible'}
